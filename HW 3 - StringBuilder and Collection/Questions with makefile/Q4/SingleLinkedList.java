@@ -1,0 +1,203 @@
+
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+
+/**
+ *
+ * @author osboxes
+ * @param <T>
+ */
+@SuppressWarnings("rawtypes")
+public class SingleLinkedList<T> implements Iterable{
+    
+    private Node<T> head = null;
+    private int size = 0;
+    private SingleLinkedList<T> deleted =null;
+
+    public SingleLinkedList (){
+        deleted = new SingleLinkedList<>(1);
+    }
+    public SingleLinkedList (int forDeleted){
+    }
+    
+    @Override
+    public Iterator iterator() {
+        return new myIterator();
+    }
+    
+    private static class Node<T>{
+        private T data;
+        private Node<T> next;
+        
+        private Node(T dataItem)
+        {
+            data = dataItem;
+            next =null;
+        }
+        private Node(T dataItem,Node<T> nodeRef)
+        {
+            data = dataItem;
+            next = nodeRef;
+        }   
+    }
+    
+    private class myIterator implements Iterator{
+
+        private Node<T> nextItem;
+        private Node<T> lastItemReturned;
+        private int index=0;
+            
+        public myIterator()
+        {
+            lastItemReturned = null;
+            nextItem = head;
+        }
+        @Override
+        public boolean hasNext() {
+            return (nextItem != null) ;
+        }
+
+        @Override
+        public T next() {
+            if (!hasNext())
+                throw new NoSuchElementException();
+            lastItemReturned = nextItem;
+            nextItem = nextItem.next;
+            index++;
+            return lastItemReturned.data;
+        }
+    }
+    
+    private void addFirst (T item)
+    {
+        if (deleted == null || deleted.getSize() == 0 )
+            head = new Node<>(item,head);
+        else{
+            head = deleted.getNode(deleted.getSize()-1);
+            head.data = item;
+            head.next = head;
+            deleted.remove(deleted.getSize()-1);
+        }
+        size++;
+    }
+    private void addAfter (Node node ,T item)
+    {
+        if ( deleted == null || deleted.getSize() == 0 )
+            node.next = new Node<>(item,node.next);
+        else
+        {
+            node.next = deleted.getNode(deleted.getSize()-1);
+            node.next.data = item;
+            deleted.remove(deleted.getSize()-1);
+        }
+        size++;
+    }
+    private T removeAfter(Node<T> node)
+    {
+        Node<T> temp = node.next;
+        if (temp != null)
+        {
+            node.next = temp.next;
+            size--;
+            if (deleted != null)
+                deleted.add(temp.data);
+            return temp.data;
+        }
+        else 
+            return null ;
+    }
+    private T removeFirst(){
+        Node<T> temp = head;
+        if (head != null)
+            head = head.next;
+        if (temp != null)
+        {
+            if (deleted != null)
+                deleted.add(temp.data);
+            size--;
+            return temp.data;
+        }
+        else
+            return null;
+    }
+    
+    private Node<T> getNode(int index)
+    {
+        Node<T> node = head;
+        for(int i =0;i<index &&node != null;++i)
+            node = node.next;
+        return node;
+    }
+    public T get(int index){
+        if (index <0 || index>=size)
+            throw new IndexOutOfBoundsException(Integer.toString(index));
+        Node<T> temp = getNode(index);
+        return temp.data;
+    }
+    public T set(int index ,T newVal)
+    {
+        if (index <0 || index>=size)
+            throw new IndexOutOfBoundsException(Integer.toString(index));
+        Node<T> temp = getNode(index);
+        T result = temp.data;
+        temp.data = newVal;
+        return result;
+    }
+    public void add (int index ,T addItem)
+    {
+        if (index <0 || index>size)
+            throw new IndexOutOfBoundsException(Integer.toString(index));
+        if (index ==0)
+            addFirst(addItem);
+        else
+        {
+            Node<T> newNode =getNode(index-1);
+            addAfter(newNode,addItem);
+        }
+    }
+    public void add(T addItem){
+        add(size,addItem);
+    }
+    public void remove(int index){
+        if (index <0 || index>=size)
+            throw new IndexOutOfBoundsException(Integer.toString(index));
+        if (index == 0)
+            removeFirst();
+        else
+            removeAfter(getNode(index-1));
+    }
+    public int getSize(){
+        return size;
+    }
+    
+    @Override
+    public String toString()
+    {
+        Node<T> nodeRef = head;
+        String print = "[";
+        while (nodeRef != null)
+        {
+            print = print.concat(nodeRef.data.toString());
+            if(nodeRef.next != null)
+                print += ", ";
+            nodeRef = nodeRef.next;
+        }
+        print += "]";
+        return print;
+    }
+    public String deletedToString()
+    {
+        String print = "[";
+        if (deleted != null){
+        for (int i=0;i<deleted.getSize();++i)
+        {
+            print += deleted.get(i);
+            if (deleted.getNode(i).next != null)
+                print += ", ";
+        }
+        }
+        print += "]";
+        return print;
+    }
+    
+}
